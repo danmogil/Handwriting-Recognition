@@ -1,1 +1,3 @@
 # Handwriting-Recognition
+WORK IN PROGRESS 
+## IGNORE UNLESS YOUR MY PROFESSOR
