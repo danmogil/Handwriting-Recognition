@@ -1,3 +1,4 @@
+package Helpers;
 
 public class MathHelper {
 
@@ -10,7 +11,11 @@ public class MathHelper {
 		return lower + Math.random() * (upper - lower);
 	}
 
-	private static double sigmoid(double input) {
+	public static double sigmoid(double input) {
 		return 1 / (1 + Math.exp(-input));
+	}
+
+	public static double transferDerivative(double output) {
+		return output * (1.0 - output);
 	}
 }

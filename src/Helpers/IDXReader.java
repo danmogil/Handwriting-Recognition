@@ -1,3 +1,4 @@
+package Helpers;
 import java.io.ByteArrayOutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
