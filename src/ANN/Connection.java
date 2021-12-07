@@ -1,41 +1,49 @@
 package ANN;
+
 public class Connection {
+  private AN leftNode;
+  private AN rightNode;
+  private double weight;
+  private String ref;
+  private double prevWeightChange = 0;
 
-	private AN left;
-	private AN right; // forward propagates rightward
-	private double weight;
-	private String ref;
+  public Connection(AN leftNode, AN rightNode, double weight) {
+    this.leftNode = leftNode;
+    this.rightNode = rightNode;
+    this.weight = weight;
+    ref = String.format("%s->%s", leftNode.getRef(), rightNode.getRef());
+  }
 
-	public Connection(AN left, AN right, double weight) {
-		this.left = left;
-		this.right = right;
-		this.weight = weight;
-		ref = String.format("%s[%d]->%s[%d]", left.getLayer(), left.getID(), right.getLayer(), right.getID());
-	}
+  public AN getLeftNode() {
+    return leftNode;
+  }
 
-	public AN getLeft() {
-		return left;
-	}
+  public AN getRightNode() {
+    return rightNode;
+  }
 
-	public AN getRight() {
-		return right;
-	}
+  public String getRef() {
+    return ref;
+  }
 
-	public String getRef() {
-		return ref;
-	}
+  public double getWeight() {
+    return weight;
+  }
 
-	public double getWeight() {
-		return weight;
-	}
+  public void setWeight(double weight) {
+    this.weight = weight;
+  }
 
-	public void setWeight(double weight) {
-		this.weight = weight;
-	}
+  public double getPrevWeightChange() {
+    return prevWeightChange;
+  }
 
-	@Override
-	public String toString() {
-		return String.format("%s[%d]->%s[%d] %f", left.getLayer(), left.getID(), right.getLayer(), right.getID(),
-				weight);
-	}
+  public void setPrevWeightChange(double prevWeightChange) {
+    this.prevWeightChange = prevWeightChange;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s %f ", ref, weight);
+  }
 }

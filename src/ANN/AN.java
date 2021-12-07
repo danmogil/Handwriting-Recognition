@@ -1,32 +1,44 @@
 package ANN;
 
 public class AN {
+  private double value;
+  private String ref;
+  private double sumOfInputWeights;
+  private double nodeDelta;
 
-	private double value;
-	private String layer;
-	private int id;
+  public AN(String connectionRef) {
+    String[] s = connectionRef.split("\\[|]");
+    int id = Integer.parseInt(s[1]);
 
-	public AN(String ref) {
-		String[] s = ref.split("\\[|]");
-		layer = s[0];
-		id = Integer.parseInt(s[1]);
-		if (id == 0)
-			value = 1;
-	}
+    ref = String.format("%s[%d]", s[0], id);
+    if (id == 0) value = 1;
+  }
 
-	public String getLayer() {
-		return layer;
-	}
+  public String getRef() {
+    return ref;
+  }
 
-	public int getID() {
-		return id;
-	}
+  public double getValue() {
+    return value;
+  }
 
-	public double getValue() {
-		return value;
-	}
+  public void setValue(double value) {
+    this.value = value;
+  }
 
-	public void setValue(double value) {
-		this.value = value;
-	}
+  public double getSumOfInputWeights() {
+    return sumOfInputWeights;
+  }
+
+  public void setSumOfInputWeights(double sumOfInputWeights) {
+    this.sumOfInputWeights = sumOfInputWeights;
+  }
+
+  public double getNodeDelta() {
+    return nodeDelta;
+  }
+
+  public void setNodeDelta(double nodeDelta) {
+    this.nodeDelta = nodeDelta;
+  }
 }
