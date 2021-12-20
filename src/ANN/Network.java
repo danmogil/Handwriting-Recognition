@@ -21,10 +21,9 @@ public class Network {
 	private static final int HIDDENLAYERCOUNT = 3;
 	private static final int NEURONSPERHIDDENLAYER = 12;
 	public static final double LEARNINGRATE = .007;
-	public static final double MOMENTUM = .05;
 	
 	/**
-	 * @return nodeID for the output node with the greatest value.
+	 * @return nodeID of the output node with the greatest value.
 	 */
 	
 	public static int predict(int[] image) {
@@ -46,7 +45,7 @@ public class Network {
 	public static void train() {
 		int[] labels = IDXReader.read("train-labels.idx1-ubyte");
 		int[] images = IDXReader.read("train-images.idx3-ubyte");
-		int trainingSize = 10;
+		int trainingSize = labels.length;
 		Map<String, Connection> connections = parseWeights();
 		for (int label = 0, pixel = 0; label < trainingSize; label++, pixel += IDXReader.PIXELSPERIMAGE) {
 			int[] image = Arrays.copyOfRange(images, pixel, pixel + IDXReader.PIXELSPERIMAGE);
@@ -60,55 +59,97 @@ public class Network {
 
 	private static Map<String, Connection> propagateBackwards(int label, Map<String, Connection> connections) {
 		Set<String> keys = connections.keySet();
+		Map<String, Double> errors = new HashMap<>();
+		// set error values
 		for (int i = 0; i <= 9; i++) {
 			String[] connectionsHtoOutput = filterConnections(keys, "o[%d]", i);
 			AN outputNode = connections.get(connectionsHtoOutput[0]).getRightNode();
 
-			double actualValue = outputNode.getValue();
+			double outputValue = outputNode.getValue();
 			double idealValue = (i == label ? 1 : 0);
-			double error = actualValue - idealValue;
-			double outputNodeDelta = -error * MathHelper.dSigmoid(outputNode.getSumOfInputWeights());
-			outputNode.setNodeDelta(outputNodeDelta);
-
-			for (String s : connectionsHtoOutput) {
-				Connection connectionsHtoOutputLocal = connections.get(s);
-				AN localNode = connectionsHtoOutputLocal.getLeftNode();
-				propagateNodeBackwards(connectionsHtoOutputLocal, localNode, outputNode);
+			double outputError = outputValue - idealValue;
+			double sumOfInputWeights = outputNode.getSumOfInputWeights();
+			
+			for (String key : connectionsHtoOutput) {
+				Connection c = connections.get(key);
+				double cWeight = c.getWeight();
+				double inputNodeError = (cWeight / sumOfInputWeights) * outputError;
+				AN inputNode = c.getLeftNode();
+				String inputNodeRef = inputNode.getRef();
+				sumNodeErrors(errors, inputNode, inputNodeRef, inputNodeError);
+				
+				if (i == 9) {
+					double finalErrorValue = errors.get(inputNodeRef);
+					inputNode.setError(finalErrorValue);
+				}
 			}
+		}
+		for (int j = HIDDENLAYERCOUNT; j > 1; j--) {
+			for (int k = 1; k <= NEURONSPERHIDDENLAYER; k++) {
+				String[] connectionsIthroughH = filterConnections(keys, "h%d[%d]", j, k);
+				AN outputNode = connections.get(connectionsIthroughH[0]).getRightNode();
+				
+				double outputError = outputNode.getError();
+				
+				for (String key : connectionsIthroughH) {
+					Connection c = connections.get(key);
+					double cWeight = c.getWeight();
+					double inputNodeError = cWeight * outputError;
+					AN inputNode = c.getLeftNode();
+					String inputNodeRef = inputNode.getRef();
+					sumNodeErrors(errors, inputNode, inputNodeRef, inputNodeError);
+					
+					if (k == NEURONSPERHIDDENLAYER) {
+						double finalErrorValue = errors.get(inputNodeRef);
+						inputNode.setError(finalErrorValue);
+					}
+				}
+			}
+		}
+		// update weights
+		for (int i = 0; i <= 9; i++) {
+			String[] connectionsHtoOutput = filterConnections(keys, "o[%d]", i);
+			for (String key : connectionsHtoOutput)
+				propagateNodeBackwards(connections.get(key));
 		}
 
 		for (int j = HIDDENLAYERCOUNT; j > 0; j--) {
 			for (int k = 0; k <= NEURONSPERHIDDENLAYER; k++) {
 				String[] connectionsIthroughH = filterConnections(keys, "h%d[%d]", j, k);
 				for (String key : connectionsIthroughH)
-					if (!key.matches("\\[0\\]->")) {
-						Connection connectionsIthroughHLocal = connections.get(key);
-						AN localNode = connectionsIthroughHLocal.getLeftNode();
-						AN outputNode = connectionsIthroughHLocal.getRightNode();
-						propagateNodeBackwards(connectionsIthroughHLocal, localNode, outputNode);
-					}
+					propagateNodeBackwards(connections.get(key)); 
 			}
 		}
 		return connections;
 	}
 	
-	private static void propagateNodeBackwards(Connection localConnection, AN connectionInputNode, AN connectionOutputNode) {
-		double connectionOutputNodeDelta = connectionOutputNode.getNodeDelta();
-		double connectionInputNodeDelta = connectionInputNode.getSumOfInputWeights()
-				* (connectionOutputNodeDelta * localConnection.getWeight());
-		connectionInputNode.setNodeDelta(connectionInputNodeDelta);
-		
-		double gradient = connectionInputNode.getValue() * connectionOutputNodeDelta;
-		double weightDelta = MathHelper.weightDelta(gradient, connectionInputNode.getSumOfInputWeights());
-		
-		localConnection.setPrevWeightChange(weightDelta);
-		localConnection.setWeight(localConnection.getWeight() + weightDelta);
+	private static void propagateNodeBackwards(Connection c) {
+		AN inputNode = c.getLeftNode();
+		AN outputNode = c.getRightNode();
+		double inputNodeValue = inputNode.getValue();
+		double outputNodeError = outputNode.getError();
+		double outputNodeValue = outputNode.getValue();
+		double dOutputNodeValue = outputNodeValue * (1 - outputNodeValue);
+		double weightDelta = LEARNINGRATE * outputNodeError * (dOutputNodeValue == 0 ? 1 : (dOutputNodeValue * inputNodeValue)); // bias term weightDelta = LEARNINGRATE * outputNodeError
+		double cWeight = c.getWeight();
+		c.setWeight(cWeight + weightDelta);
 	}
 	
+	/**
+	 * inputNodeError = sum(w1/sum(w...) * outputNodeError, ...)
+	 */
+	
+	private static void sumNodeErrors(Map<String, Double> errors, AN inputNode, String inputNodeRef, double inputNodeError) {
+		if (errors.containsKey(inputNodeRef)) {
+			double prevValue = errors.get(inputNodeRef); 
+			errors.replace(inputNodeRef, prevValue + inputNodeError);
+		} else
+			errors.put(inputNodeRef, inputNodeError);
+	}
 	
 	/**
 	 * Propagate weighted values forward.
-	 * @return output node value represents answer likelihood.
+	 * Output node value represents answer likelihood.
 	 */
 
 	private static Map<String, Connection> propagateForwards(int[] image) {
@@ -118,7 +159,7 @@ public class Network {
 		String[] connectionsInputToH1 = filterConnections(keys, "h1[1]");
 		for (int i = 1; i < connectionsInputToH1.length; i++) { // exclude bias term
 			AN inputNode = connections.get(connectionsInputToH1[i]).getLeftNode();
-			inputNode.setValue(image[i - 1]);
+			inputNode.setValue(image[i - 1] / 255);
 		}
 		// propagate
 		for (int i = 1; i <= HIDDENLAYERCOUNT; i++) {
@@ -235,24 +276,21 @@ public class Network {
 		try (FileWriter file = new FileWriter("./src/data/weights.txt", false)) {
 			for (int i = 0; i <= IDXReader.PIXELSPERIMAGE; i++) {
 				for (int j = 1; j <= NEURONSPERHIDDENLAYER; j++) {
-					file.write(String.format("i[%d]->h1[%d] %.6f ", i, j, i == 0 ? 0
-							: MathHelper.XavierWeightInit(IDXReader.PIXELSPERIMAGE + 1, NEURONSPERHIDDENLAYER)));
+					file.write(String.format("i[%d]->h1[%d] %.6f ", i, j, MathHelper.XavierWeightInit(IDXReader.PIXELSPERIMAGE + 1, NEURONSPERHIDDENLAYER)));
 				}
 			}
 			file.write("\n\n");
 			for (int i = 1; i < HIDDENLAYERCOUNT; i++) {
 				for (int j = 0; j <= NEURONSPERHIDDENLAYER; j++) {
 					for (int k = 1; k <= NEURONSPERHIDDENLAYER; k++) {
-						file.write(String.format("h%d[%d]->h%d[%d] %.6f ", i, j, i + 1, k, j == 0 ? 0
-								: MathHelper.XavierWeightInit(NEURONSPERHIDDENLAYER + 1, NEURONSPERHIDDENLAYER)));
+						file.write(String.format("h%d[%d]->h%d[%d] %.6f ", i, j, i + 1, k, MathHelper.XavierWeightInit(NEURONSPERHIDDENLAYER + 1, NEURONSPERHIDDENLAYER)));
 					}
 				}
 				file.write("\n\n");
 			}
 			for (int i = 0; i <= NEURONSPERHIDDENLAYER; i++) {
 				for (int j = 0; j <= 9; j++) {
-					file.write(String.format("h%d[%d]->o[%d] %.6f ", HIDDENLAYERCOUNT, i, j,
-							i == 0 ? 0 : MathHelper.XavierWeightInit(NEURONSPERHIDDENLAYER + 1, 10)));
+					file.write(String.format("h%d[%d]->o[%d] %.6f ", HIDDENLAYERCOUNT, i, j, MathHelper.XavierWeightInit(NEURONSPERHIDDENLAYER + 1, 10)));
 				}
 			}
 		} catch (IOException e) {

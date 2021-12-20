@@ -1,12 +1,6 @@
 # Handwriting-Recognition
-Overview: https://youtu.be/px5snqy5cis
+![GUI preview](./src/data/preview.PNG "GUI preview")
 
-## Learned:
-- Stream, map, collectors
-- Mathematics of forward propagation
-- Data-flow of forward and backward propagation
-- File reading/writing
-- Decoding bytes, endianness 
-
-## Challenges:
-- Mathematics of backward propagation
+A Supervised Learning Artificial Neural Network model for recognizing handwritten digits.<br />
+<br />
+No external libraries, training/test data from [MNIST database](http://yann.lecun.com/exdb/mnist/).

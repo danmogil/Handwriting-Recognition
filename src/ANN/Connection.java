@@ -5,7 +5,6 @@ public class Connection {
   private AN rightNode;
   private double weight;
   private String ref;
-  private double prevWeightChange = 0;
 
   public Connection(AN leftNode, AN rightNode, double weight) {
     this.leftNode = leftNode;
@@ -32,14 +31,6 @@ public class Connection {
 
   public void setWeight(double weight) {
     this.weight = weight;
-  }
-
-  public double getPrevWeightChange() {
-    return prevWeightChange;
-  }
-
-  public void setPrevWeightChange(double prevWeightChange) {
-    this.prevWeightChange = prevWeightChange;
   }
 
   @Override

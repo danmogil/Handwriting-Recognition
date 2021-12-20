@@ -1,7 +1,5 @@
 package Helpers;
 
-import ANN.Network;
-
 public class MathHelper {
 
   /**
@@ -22,14 +20,5 @@ public class MathHelper {
 
   public static double sigmoid(double input) {
     return 1 / (1 + Math.exp(-input));
-  }
-
-  public static double dSigmoid(double input) {
-    double sigmoidResult = sigmoid(input);
-    return sigmoidResult * (1.0 - sigmoidResult);
-  }
-
-  public static double weightDelta(double gradient, double prevWeightChange) {
-    return (Network.LEARNINGRATE * gradient) + (Network.MOMENTUM * prevWeightChange);
   }
 }

@@ -4,7 +4,7 @@ public class AN {
   private double value;
   private String ref;
   private double sumOfInputWeights;
-  private double nodeDelta;
+  private double error;
 
   public AN(String connectionRef) {
     String[] s = connectionRef.split("\\[|]");
@@ -34,11 +34,11 @@ public class AN {
     this.sumOfInputWeights = sumOfInputWeights;
   }
 
-  public double getNodeDelta() {
-    return nodeDelta;
+  public double getError() {
+    return error;
   }
 
-  public void setNodeDelta(double nodeDelta) {
-    this.nodeDelta = nodeDelta;
+  public void setError(double error) {
+    this.error = error;
   }
 }
