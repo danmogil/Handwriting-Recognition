@@ -1,7 +1,7 @@
 # Handwriting-Recognition
 ![GUI preview](./src/data/preview.PNG "GUI preview")
 
-A Supervised Learning Artificial Neural Network model for recognizing handwritten digits.<br />
-The number of hidden layers, nodes per hidden layer, and the learning rate are customizable.
+Handwriting recognition using a SL Neural Network.<br />
+Users can easily customize the network's size/complexity.
 <br /><br />
-No external libraries, training/test data from the [MNIST database](http://yann.lecun.com/exdb/mnist/).
+No external libraries, training/test data sourced from the [MNIST database](http://yann.lecun.com/exdb/mnist/).
